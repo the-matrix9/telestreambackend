@@ -1,0 +1,29 @@
+{
+  "name": "telestream-backend",
+  "private": true,
+  "version": "2.0.0",
+  "type": "module",
+  "description": "TeleStream backend: API + Telegram service, run on your VPS.",
+  "workspaces": [
+    "packages/*",
+    "apps/api",
+    "apps/server",
+    "apps/telegram-service",
+    "tests"
+  ],
+  "engines": {
+    "node": ">=22.13"
+  },
+  "scripts": {
+    "dev:tg": "npm run dev -w @telestream/telegram-service",
+    "dev:api": "npm run dev -w @telestream/server",
+    "start:tg": "npm run start -w @telestream/telegram-service",
+    "start:api": "npm run start -w @telestream/server",
+    "typecheck": "npm run typecheck --workspaces --if-present",
+    "test": "npm run test --workspaces --if-present"
+  },
+  "devDependencies": {
+    "typescript": "^5.6.0",
+    "vitest": "^5.0.4"
+  }
+}

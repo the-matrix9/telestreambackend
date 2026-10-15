@@ -1,0 +1,8 @@
+{
+  "extends": "../tsconfig.base.json",
+  "compilerOptions": {
+    "lib": ["ES2023"],
+    "types": ["@cloudflare/workers-types", "node"]
+  },
+  "include": ["./**/*.ts", "../apps/api/src", "../apps/telegram-service/src/app.ts", "../apps/telegram-service/src/streaming.ts", "../apps/telegram-service/src/gateway.ts", "../apps/telegram-service/src/errors.ts"]
+}

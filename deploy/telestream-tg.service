@@ -1,0 +1,22 @@
+# Non-Docker setup. Install to /etc/systemd/system/, adjust paths, then:
+#   systemctl daemon-reload && systemctl enable --now telestream-tg telestream-api
+[Unit]
+Description=TeleStream Telegram service
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+User=telestream
+WorkingDirectory=/opt/telestream
+EnvironmentFile=/etc/telestream/tg.env
+ExecStart=/usr/bin/npm run start -w @telestream/telegram-service
+Restart=on-failure
+RestartSec=5
+NoNewPrivileges=true
+ProtectSystem=strict
+ProtectHome=true
+PrivateTmp=true
+ReadWritePaths=/var/lib/telestream
+
+[Install]
+WantedBy=multi-user.target

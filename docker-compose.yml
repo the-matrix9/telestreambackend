@@ -1,0 +1,53 @@
+# TeleStream backend: Telegram service + API + Caddy (automatic HTTPS).
+#   cp .env.example .env     # fill in every value
+#   docker compose up -d --build
+name: telestream
+services:
+  telegram-service:
+    build: { context: ., dockerfile: deploy/Dockerfile }
+    command: ["npm", "run", "start", "-w", "@telestream/telegram-service"]
+    environment:
+      TG_API_ID: ${TG_API_ID:?set TG_API_ID in .env}
+      TG_API_HASH: ${TG_API_HASH:?set TG_API_HASH in .env}
+      SESSION_ENCRYPTION_KEY: ${SESSION_ENCRYPTION_KEY:?set SESSION_ENCRYPTION_KEY in .env}
+      TG_SERVICE_SECRET: ${TG_SERVICE_SECRET:?set TG_SERVICE_SECRET in .env}
+      MAX_CONCURRENT_STREAMS: ${MAX_CONCURRENT_STREAMS:-24}
+      MAX_RANGE_BYTES: ${MAX_RANGE_BYTES:-67108864}
+      HOST: 0.0.0.0
+      PORT: "8788"
+      SESSION_FILE: /data/session.enc
+    volumes: [ "tg-data:/data" ]
+    restart: unless-stopped
+    expose: [ "8788" ]          # internal only: never published to the internet
+
+  api:
+    build: { context: ., dockerfile: deploy/Dockerfile }
+    command: ["npm", "run", "start", "-w", "@telestream/server"]
+    environment:
+      APP_ORIGIN: ${APP_ORIGIN:?set APP_ORIGIN in .env}
+      API_PUBLIC_URL: ${API_PUBLIC_URL:?set API_PUBLIC_URL in .env}
+      COOKIE_SAMESITE: ${COOKIE_SAMESITE:-strict}
+      TG_SERVICE_URL: http://telegram-service:8788
+      TG_SERVICE_SECRET: ${TG_SERVICE_SECRET:?set TG_SERVICE_SECRET in .env}
+      PLAYBACK_SECRET: ${PLAYBACK_SECRET:?set PLAYBACK_SECRET in .env}
+      PASSWORD_PEPPER: ${PASSWORD_PEPPER:?set PASSWORD_PEPPER in .env}
+      SETUP_TOKEN: ${SETUP_TOKEN:?set SETUP_TOKEN in .env}
+      DATABASE_FILE: /data/telestream.db
+      HOST: 0.0.0.0
+      PORT: "8787"
+      TRUST_PROXY: "true"       # Caddy sits in front; client IP comes from X-Forwarded-For
+      ENVIRONMENT: production
+    volumes: [ "api-data:/data" ]
+    depends_on: [ telegram-service ]
+    restart: unless-stopped
+    expose: [ "8787" ]
+
+  caddy:
+    image: caddy:2
+    ports: [ "80:80", "443:443" ]
+    environment: { API_DOMAIN: "${API_DOMAIN:?set API_DOMAIN in .env}" }
+    volumes: [ "./deploy/Caddyfile:/etc/caddy/Caddyfile:ro", "caddy-data:/data" ]
+    depends_on: [ api ]
+    restart: unless-stopped
+
+volumes: { tg-data: {}, api-data: {}, caddy-data: {} }

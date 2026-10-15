@@ -1,0 +1,7 @@
+# For the non-Docker setup (systemd). Install Caddy, put this in /etc/caddy/Caddyfile, replace the domain.
+api.example.com {
+	reverse_proxy 127.0.0.1:8787 {
+		flush_interval -1
+		transport http { response_header_timeout 90s }
+	}
+}

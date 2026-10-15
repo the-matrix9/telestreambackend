@@ -1,0 +1,21 @@
+# Non-Docker setup (see telestream-tg.service).
+[Unit]
+Description=TeleStream API
+After=network-online.target telestream-tg.service
+Wants=network-online.target
+
+[Service]
+User=telestream
+WorkingDirectory=/opt/telestream
+EnvironmentFile=/etc/telestream/api.env
+ExecStart=/usr/bin/npm run start -w @telestream/server
+Restart=on-failure
+RestartSec=5
+NoNewPrivileges=true
+ProtectSystem=strict
+ProtectHome=true
+PrivateTmp=true
+ReadWritePaths=/var/lib/telestream
+
+[Install]
+WantedBy=multi-user.target
